@@ -260,8 +260,19 @@ body{
 .page-head h2{ font-family:var(--font-display); font-size:1.3rem; margin:0; }
 .page-head .iconbtn{ font-size:1.6rem; }
 
-/* ---------- Sprachübungen: Übersichtstabelle ---------- */
+/* ---------- Sprachübungen ---------- */
 .sprach-intro{ color:var(--muted); font-size:.92rem; margin:-6px 0 16px; line-height:1.5; }
+.sprach-intro[hidden]{ display:none; }
+.sprach-list{ display:flex; flex-direction:column; gap:12px; }
+.sprach-item{ display:flex; align-items:center; gap:14px; width:100%; text-align:start; cursor:pointer;
+  background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+  box-shadow:var(--shadow); padding:16px 18px; transition:transform .12s, border-color .12s; }
+.sprach-item:hover{ transform:translateY(-2px); border-color:var(--violet); }
+.sprach-item .si-ico{ font-size:1.7rem; flex:0 0 auto; }
+.sprach-item .si-txt{ display:flex; flex-direction:column; gap:2px; flex:1 1 auto; min-width:0; }
+.sprach-item .si-ar{ font-family:var(--font-ar); font-size:1.4rem; line-height:1.3; }
+.sprach-item .si-txt small{ color:var(--muted); font-size:.82rem; }
+.sprach-item .si-arrow{ font-size:1.6rem; color:var(--muted); flex:0 0 auto; }
 .sprach-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-lg);
   box-shadow:var(--shadow); overflow:hidden; }
 .sprach-tbl{ width:100%; border-collapse:collapse; }
@@ -272,8 +283,6 @@ body{
 .sprach-tbl tr:last-child td{ border-bottom:none; }
 .sprach-tbl .ar{ font-family:var(--font-ar); font-size:1.5rem; line-height:1.3; }
 .sprach-tbl .sp-d{ white-space:nowrap; }
-.sprach-tbl .sp-d small{ display:block; color:var(--muted); font-size:.72rem; font-family:var(--font-body);
-  margin-top:2px; direction:ltr; }
 .sprach-tbl .sp-m .ar{ color:var(--violet); }
 .sprach-tbl .sp-de{ color:var(--text); font-size:.95rem; }
 
@@ -675,16 +684,21 @@ body{
     <div class="grid" id="gridGram"></div>
   </section>
 
-  <!-- ===================== SUBSEITE: SPRACHÜBUNGEN ===================== -->
+  <!-- ===================== SUBSEITE: SPRACHÜBUNGEN (Liste) ===================== -->
   <section id="pageSprach" class="screen">
     <div class="page-head"><button class="iconbtn" onclick="goHome()" title="Zurück">‹</button><h2>🗣️ Sprachübungen</h2></div>
-    <p class="sprach-intro">Dialekt (Levante) ↔ Hocharabisch (fuṣḥā). Diese Übersicht begleitet die Übung im Unterricht.</p>
+    <p class="sprach-intro">Wähle eine Übung aus. Die Übersichten begleiten die Übung im Unterricht.</p>
+    <div class="sprach-list" id="sprachList"></div>
+  </section>
+
+  <!-- ===================== SUBSEITE: SPRACHÜBUNG (Detail/Tabelle) ===================== -->
+  <section id="pageSprachDetail" class="screen">
+    <div class="page-head"><button class="iconbtn" onclick="goPage('sprach')" title="Zurück">‹</button><h2 id="exTitle"></h2></div>
+    <p class="sprach-intro" id="exSubtitle"></p>
     <div class="sprach-card">
       <table class="sprach-tbl">
-        <thead>
-          <tr><th>Dialekt</th><th>Hocharabisch</th><th>Bedeutung</th></tr>
-        </thead>
-        <tbody id="sprachTable"></tbody>
+        <thead id="exHead"></thead>
+        <tbody id="exTable"></tbody>
       </table>
     </div>
   </section>
@@ -1040,19 +1054,6 @@ const DATA = {
     {s:"يَنْظُرُ … الصورةِ", a:"إلى", de:"schauen auf"},
     {s:"يَعيشُ النّاسُ … سَلامٍ", a:"في", de:"leben in"},
     {s:"يَعْتَذِرُ … خَطَئِهِ", a:"عَن", de:"sich entschuldigen für"},
-  ],
-
-  // Dialekt ↔ Hocharabisch — Kontrastpaare (aus dem Lied „صباح الورد" / Saint Levant)
-  // d = levantinischer Dialekt, m = Hocharabisch (fuṣḥā), de = Bedeutung
-  contrast:[
-    {d:"راح",        tr:"rāḥ",       m:"ذَهَبَ",    de:"gehen"},
-    {d:"طِلِع",      tr:"ṭili‘",     m:"خَرَجَ",    de:"hinausgehen"},
-    {d:"عَـ",        tr:"‘a-",       m:"إلى / عَلى", de:"zu / auf"},
-    {d:"بْيِقْرا",   tr:"byiqra",    m:"يَقْرَأُ",   de:"er liest"},
-    {d:"مِلْيان",    tr:"milyān",    m:"مَمْلوء",   de:"voll"},
-    {d:"حِلْوة",     tr:"ḥilwe",     m:"جَميلة",    de:"schön"},
-    {d:"الشّغّالين", tr:"aš-šaġġālīn", m:"العُمّال", de:"die Arbeiter*innen"},
-    {d:"البَيّاعين", tr:"al-bayyā‘īn", m:"الباعة",  de:"die Verkäufer*innen"},
   ],
 
   // Wurzel bestimmen
@@ -1535,6 +1536,43 @@ const CATS = [
 ];
 
 /* ============================================================
+   SPRACHÜBUNGEN  —  Liste der Übungen (jede Woche erweiterbar)
+   ------------------------------------------------------------
+   So fügst du eine neue Übung hinzu: einfach einen neuen Block
+   { … } an die Liste anhängen (Komma nicht vergessen!).
+
+     id       – kurzer, eindeutiger Name ohne Leerzeichen
+     title    – Titel auf Arabisch (erscheint in der Liste)
+     titleDe  – kurze deutsche Beschreibung (optional)
+     cols     – Spaltenüberschriften der Tabelle (3 Stück)
+     rows     – die Tabellenzeilen:
+                d  = linke Spalte (hier: Dialekt)
+                m  = mittlere Spalte (hier: Hocharabisch)
+                de = rechte Spalte (Bedeutung)
+   ============================================================ */
+const SPRACH_EXERCISES = [
+  {
+    id:"sabah-elward",
+    title:"أُغْنِيَة صَباح الوَرْد",
+    titleDe:"Lied „Sabah el-Ward“ — Saint Levant",
+    emoji:"🎵",
+    cols:["Dialekt","Hocharabisch","Bedeutung"],
+    rows:[
+      {d:"راح",        m:"ذَهَبَ",     de:"gehen"},
+      {d:"طِلِع",      m:"خَرَجَ",     de:"hinausgehen"},
+      {d:"عَـ",        m:"إلى / عَلى", de:"zu / auf"},
+      {d:"بْيِقْرا",   m:"يَقْرَأُ",    de:"er liest"},
+      {d:"مِلْيان",    m:"مَمْلوء",    de:"voll"},
+      {d:"حِلْوة",     m:"جَميلة",     de:"schön"},
+      {d:"الشّغّالين", m:"العُمّال",   de:"die Arbeiter*innen"},
+      {d:"البَيّاعين", m:"الباعة",     de:"die Verkäufer*innen"},
+    ],
+  },
+  // --- Hier nächste Woche die neue Übung einfügen ---
+];
+function sprachExById(id){ return SPRACH_EXERCISES.find(e=>e.id===id); }
+
+/* ============================================================
    STATE
    ============================================================ */
 const LS_KEY = "yallaArabi_v1";
@@ -1656,15 +1694,37 @@ function renderGrids(){
   });
 }
 
-/* ---- Sprachübungen: reine Übersichtstabelle (Dialekt ↔ Hocharabisch) ---- */
+/* ---- Sprachübungen: Liste der Übungen ---- */
 function renderSprach(){
-  const host = document.getElementById("sprachTable"); if(!host) return;
-  host.innerHTML = DATA.contrast.map(v=>`
+  const host = document.getElementById("sprachList"); if(!host) return;
+  host.innerHTML = SPRACH_EXERCISES.map(e=>`
+    <button class="sprach-item" onclick="openExercise('${e.id}')">
+      <span class="si-ico">${e.emoji||"📝"}</span>
+      <span class="si-txt">
+        <span class="si-ar ar" lang="ar" dir="rtl">${e.title}</span>
+        ${e.titleDe?`<small>${e.titleDe}</small>`:""}
+      </span>
+      <span class="si-arrow">›</span>
+    </button>`).join("");
+}
+
+/* ---- Sprachübungen: eine Übung öffnen (Tabelle anzeigen) ---- */
+let sprachReturn = "home";
+function openExercise(id){
+  const ex = sprachExById(id); if(!ex) return;
+  const cols = ex.cols || ["Dialekt","Hocharabisch","Bedeutung"];
+  document.getElementById("exTitle").innerHTML = `<span class="ar" lang="ar" dir="rtl">${ex.title}</span>`;
+  document.getElementById("exSubtitle").textContent = ex.titleDe || "";
+  document.getElementById("exSubtitle").hidden = !ex.titleDe;
+  document.getElementById("exHead").innerHTML =
+    `<tr><th>${cols[0]}</th><th>${cols[1]}</th><th>${cols[2]}</th></tr>`;
+  document.getElementById("exTable").innerHTML = ex.rows.map(v=>`
     <tr>
-      <td class="sp-d"><span class="ar" lang="ar" dir="rtl">${v.d}</span><small>${v.tr}</small></td>
+      <td class="sp-d"><span class="ar" lang="ar" dir="rtl">${v.d}</span></td>
       <td class="sp-m"><span class="ar" lang="ar" dir="rtl">${v.m}</span></td>
       <td class="sp-de">${v.de}</td>
     </tr>`).join("");
+  show("pageSprachDetail"); window.scrollTo(0,0);
 }
 const PAGE_SCREEN = {wortschatz:"pageWortschatz", games:"pageGames", grammatik:"pageGrammar", sprach:"pageSprach"};
 function goPage(name){ if(name==="sprach") renderSprach(); else renderGrids(); navReturn=name; show(PAGE_SCREEN[name]||"home"); window.scrollTo(0,0); }
