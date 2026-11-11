@@ -305,6 +305,22 @@ body{
 .lightbox figcaption{ color:#fff; font-family:var(--font-ar); font-size:1.7rem; }
 .lightbox .lb-close{ position:absolute; top:16px; inset-inline-end:20px; color:#fff; font-size:2.2rem;
   line-height:1; background:none; border:none; cursor:pointer; }
+/* Aussprache-Buttons */
+.fc-speak{ position:absolute; top:12px; right:12px; width:42px; height:42px; border-radius:50%; z-index:3;
+  display:grid; place-items:center; cursor:pointer; font-size:1.2rem; line-height:1; color:var(--teal-d);
+  background:var(--surface-2); border:1px solid var(--border); transition:transform .1s, border-color .1s; }
+.fc-speak:hover{ transform:scale(1.08); border-color:var(--teal); }
+.fc-speak:active{ transform:scale(.95); }
+.learn-card{ position:relative; }
+.lc-speak{ position:absolute; top:8px; right:8px; width:34px; height:34px; border-radius:50%; z-index:2;
+  display:grid; place-items:center; cursor:pointer; font-size:1rem; line-height:1; color:var(--teal-d);
+  background:var(--surface-2); border:1px solid var(--border); transition:border-color .1s; }
+.lc-speak:hover{ border-color:var(--teal); }
+.q-speak{ margin-top:8px; width:46px; height:46px; border-radius:50%; cursor:pointer; font-size:1.3rem;
+  background:var(--surface-2); border:1px solid var(--border); color:var(--teal-d);
+  transition:transform .1s, border-color .1s; }
+.q-speak:hover{ transform:scale(1.08); border-color:var(--teal); }
+.q-speak:active{ transform:scale(.95); }
 .artist-card .ac-name{ font-family:var(--font-ar); font-size:1.5rem; margin:0; line-height:1.25; }
 .artist-card .ac-life{ font-family:var(--font-ar); font-size:.9rem; color:var(--muted); margin-top:-2px; }
 .artist-card .ac-place{ font-family:var(--font-ar); font-size:.95rem; color:var(--muted); }
@@ -789,6 +805,7 @@ body{
           <div class="fc-face front">
             <div class="fc-tag" id="fcTag"></div>
             <div class="ar" id="fcFront"></div>
+            <button class="fc-speak" title="Aussprache hören" onclick="event.stopPropagation(); speakAr(document.getElementById('fcFront').textContent)">🔊</button>
             <div class="fc-hint">Tippen zum Umdrehen ↻</div>
           </div>
           <div class="fc-face back">
@@ -2184,7 +2201,7 @@ function renderQuestion(){
   if(q.type==="mc"){
     let wordHtml = "";
     const arSize = q.small ? ' style="font-size:2rem"' : '';
-    if(q.word.ar) wordHtml = `<div class="ar"${arSize}>${q.word.ar}</div>`;
+    if(q.word.ar) wordHtml = `<div class="ar"${arSize} id="qWord">${q.word.ar}</div><button class="q-speak" title="Aussprache hören" onclick="speakAr(document.getElementById('qWord').textContent)">🔊</button>`;
     else if(q.word.plainAr) wordHtml = `<div class="de ar" style="direction:rtl">${q.word.de}</div>`;
     else wordHtml = `<div class="de">${q.word.de}</div>`;
     const subHtml = q.sub ? `<div class="qsub">${q.sub}</div>` : "";
@@ -2439,6 +2456,7 @@ function renderCard(){
   meta.innerHTML = c.meta? c.meta.replace(/([؀-ۿ][؀-ۿ\s]*)/g, m=>ar(m)) : "";
   document.getElementById("fcCount").textContent=(browse.i+1)+" / "+browse.cards.length;
   document.getElementById("browseBar").style.width=((browse.i+1)/browse.cards.length*100)+"%";
+  if(state.sound) speakAr(front.textContent);   // Aussprache automatisch beim Lernen
 }
 function flipCard(){ document.getElementById("flashcard").classList.toggle("flipped"); }
 function nextCard(){ browse.i=(browse.i+1)%browse.cards.length; renderCard(); }
@@ -2598,6 +2616,7 @@ function learnCardHTML(it, mode){
   const deTxt = mode==="capital"? (GEO_BY_ID[it.id].de+" · "+it.capDe) : it.de;
   const visHtml = vis? `<span class="lc-vis">${vis}</span>` : "";
   return `<div class="learn-card">${visHtml}
+    <button class="lc-speak" title="Aussprache hören" onclick="speakAr(this.closest('.learn-card').querySelector('.lc-ar').textContent)">🔊</button>
     <span class="lc-ar ar" dir="rtl">${arTxt}</span><span class="lc-de">${deTxt}</span></div>`;
 }
 function learnBodyDiagram(items, face){
@@ -2950,6 +2969,32 @@ function toggleSound(){
   document.getElementById("soundBtn").textContent = state.sound? "🔊":"🔇";
 }
 
+/* ---- Aussprache (Text-to-Speech, arabische Stimme des Geräts) ---- */
+let _arVoice=null;
+function pickArabicVoice(){
+  if(!('speechSynthesis' in window)) return null;
+  const vs = speechSynthesis.getVoices()||[];
+  return vs.find(v=>/^ar\b|^ar-/i.test(v.lang)) || vs.find(v=>/arab/i.test(v.name)) || null;
+}
+function initTTS(){
+  if(!('speechSynthesis' in window)) return;
+  _arVoice = pickArabicVoice();
+  speechSynthesis.onvoiceschanged = ()=>{ _arVoice = pickArabicVoice(); };
+}
+// nur arabische Zeichen behalten (keine Umschrift/Satzzeichen vorlesen)
+function speakAr(text){
+  if(!('speechSynthesis' in window) || !text) return;
+  const t = String(text).replace(/[^؀-ۿݐ-ݿ\s]/g,' ').replace(/\s+/g,' ').trim();
+  if(!t) return;
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(t);
+    if(_arVoice){ u.voice=_arVoice; u.lang=_arVoice.lang; } else { u.lang='ar-SA'; }
+    u.rate = 0.82;   // etwas langsamer zum Lernen
+    speechSynthesis.speak(u);
+  }catch(e){}
+}
+
 /* ============================================================
    THEME
    ============================================================ */
@@ -3029,6 +3074,7 @@ function tick(){
    INIT
    ============================================================ */
 document.getElementById("soundBtn").textContent = state.sound? "🔊":"🔇";
+initTTS();
 applyTheme();
 renderHome();
 checkBadges(true);
