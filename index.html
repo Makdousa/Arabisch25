@@ -256,6 +256,8 @@ body{
 .navtile.c-coral{ background:linear-gradient(135deg,#ff7a52,#e8532f); }
 .navtile.c-violet{ background:linear-gradient(135deg,#8f7bf6,#6a52e0); }
 .navtile.c-gold{ background:linear-gradient(135deg,#ffc94d,#f39c1a); }
+.navtile.c-emerald{ background:linear-gradient(135deg,#2bc47b,#159a58); }
+.navtile.c-blue{ background:linear-gradient(135deg,#54a8ff,#2a7fe0); }
 .page-head{ display:flex; align-items:center; gap:12px; margin:6px 0 16px; }
 .page-head h2{ font-family:var(--font-display); font-size:1.3rem; margin:0; }
 .page-head .iconbtn{ font-size:1.6rem; }
@@ -345,6 +347,21 @@ body{
 .sprach-tbl .sp-d{ white-space:nowrap; }
 .sprach-tbl .sp-m .ar{ color:var(--violet); }
 .sprach-tbl .sp-de{ color:var(--text); font-size:.95rem; }
+.sprach-tbl .sp-word{ display:flex; align-items:center; gap:10px; }
+.sprach-tbl .sp-word .ar{ font-size:1.5rem; }
+.sp-speak{ flex:0 0 auto; width:34px; height:34px; border-radius:50%; cursor:pointer; font-size:1rem;
+  line-height:1; display:grid; place-items:center; color:var(--teal-d);
+  background:var(--surface-2); border:1px solid var(--border); transition:border-color .1s; }
+.sp-speak:hover{ border-color:var(--teal); }
+.sp-intro-card{ background:var(--surface); border:1px solid var(--border); border-radius:var(--r-md);
+  box-shadow:var(--shadow); padding:16px 18px; margin:0 0 16px; line-height:2; font-size:1.15rem;
+  font-family:var(--font-ar); }
+.sp-intro-card b{ color:var(--violet); font-weight:700; }
+.sp-photo{ width:160px; height:180px; margin:0 auto 16px; border-radius:14px; overflow:hidden;
+  background:#fff; border:1px solid var(--border); box-shadow:0 2px 8px rgba(0,0,0,.14);
+  cursor:zoom-in; display:grid; place-items:center; transition:transform .12s; }
+.sp-photo:hover{ transform:scale(1.03); }
+.sp-photo img{ width:100%; height:100%; object-fit:contain; background:#fff; }
 
 /* ---------- Category grid ---------- */
 .grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
@@ -755,6 +772,8 @@ body{
   <section id="pageSprachDetail" class="screen">
     <div class="page-head"><button class="iconbtn" onclick="goPage('sprach')" title="Zurück">‹</button><h2 id="exTitle"></h2></div>
     <p class="sprach-intro" id="exSubtitle"></p>
+    <div id="exPhoto" hidden></div>
+    <div class="sp-intro-card ar" id="exIntro" dir="rtl" hidden></div>
     <div class="sprach-card" id="exTableCard">
       <table class="sprach-tbl">
         <thead id="exHead"></thead>
@@ -976,6 +995,21 @@ const DATA = {
     {lek:13,ar:"نَفْس",de:"Seele, selbst",pl:"نُفوس"},
     {lek:13,ar:"مُهِمّ",de:"wichtig"},
     {lek:13,ar:"قاطَعَ / يُقاطِع",de:"boykottieren, unterbrechen"},
+    // ---- aus den Sprachübungen (Lied: فيروز حبيتك بالصيف) ----
+    {lek:20,ar:"مُطْرِبة",de:"Sängerin",pl:"مُطْرِبات"},
+    {lek:20,ar:"مَشْهور",de:"berühmt"},
+    {lek:20,ar:"غِناء",de:"Gesang, Singen"},
+    {lek:20,ar:"مُوسيقار",de:"Musiker, Komponist"},
+    {lek:20,ar:"بُحَيْرة",de:"See",pl:"بُحَيْرات"},
+    {lek:20,ar:"غَريق",de:"ertrunken, überflutet"},
+    {lek:20,ar:"عَتيق",de:"alt (für Dinge/Gebäude)"},
+    {lek:20,ar:"حَزين",de:"traurig"},
+    {lek:20,ar:"غَريب",de:"fremd, seltsam",pl:"غُرَباء"},
+    {lek:20,ar:"غُرْبة",de:"Fremde, Ferne"},
+    {lek:20,ar:"مِئة",de:"Hundert",pl:"مِئات"},
+    {lek:20,ar:"سَنة",de:"Jahr",pl:"سَنَوات"},
+    {lek:20,ar:"ألّفَ / يُؤَلِّف",de:"verfassen, komponieren"},
+    {lek:20,ar:"اِسْتَمَعَ / يَسْتَمِع",de:"zuhören, anhören"},
   ],
 
   // Gebrochene Plurale
@@ -1002,6 +1036,12 @@ const DATA = {
     {sg:"نِظام",pl:"أنظِمة",de:"System, Regime"},
     {sg:"وَكيل",pl:"وُكَلاء",de:"Vertreter"},
     {sg:"مَوْقِف",pl:"مَواقِف",de:"Standpunkt, Position"},
+    // ---- aus den Sprachübungen (Lied: فيروز حبيتك بالصيف) ----
+    {sg:"أُغْنِية",pl:"أغاني",de:"Lied"},
+    {sg:"حَرْف",pl:"حُروف",de:"Buchstabe"},
+    {sg:"رَصيف",pl:"أرصِفة",de:"Gehweg, Bürgersteig"},
+    {sg:"دَمْعة",pl:"دُموع",de:"Träne"},
+    {sg:"أخ",pl:"إخْوة",de:"Bruder"},
   ],
 
   // Verbstämme II–X
@@ -1668,6 +1708,37 @@ const SPRACH_EXERCISES = [
         fact:"Mit ihrem offen schwulen Sänger Hamed Sinno wurde die Band zu einer der wichtigsten Stimmen für queere Menschen in der arabischen Welt. Als bei einem Konzert in Kairo 2017 eine Regenbogenfahne gehisst wurde, folgten Festnahmen und ein faktisches Auftrittsverbot in Ägypten." },
     ],
   },
+  {
+    id:"fairuz-habaitak",
+    type:"vocab",
+    title:"فيروز حبيتك بالصيف",
+    titleDe:"Vokabeln zum Lied (B1)",
+    emoji:"🎶",
+    photoArtist:"فيروز",
+    intro:`فيروز <b>مُطْرِبة</b> لُبنانية <b>مشهورة</b> جِدًّا. اسمها الحقيقي نُهاد وديع حدّاد. وُلِدَت في بيروت سنة ١٩٣٤، وعُمرها الآن ٩١ سنة. بدأت <b>الغِناء</b> وهي صغيرة مع <b>الأخوَين</b> رحباني. غنّت <b>مِئات</b> <b>الأغاني</b> الجميلة، والناس في العالم العربي يُحبّونها كثيراً. ابنها زياد الرحباني <b>مُوسيقار</b> أيضًا، وهو <b>ألّفَ</b> لها أغانيَ كثيرة. في الصباح، <b>يَستمِع</b> الناس إلى أغانيها في البيت وفي السيارة. أشهر أغنية لها اسمها «لِبيروت».`,
+    cols:["الكلمة","Deutsch"],
+    rows:[
+      {ar:"مُطْرِبة", de:"Sängerin"},
+      {ar:"مشهورة", de:"berühmt"},
+      {ar:"الغِناء", de:"der Gesang / das Singen"},
+      {ar:"الأخوان (هنا: الأخوَين)", de:"die beiden Brüder (Dual)"},
+      {ar:"مِئات", de:"Hunderte"},
+      {ar:"أُغْنِية (ج: أغاني)", de:"das Lied (Pl.: Lieder)"},
+      {ar:"مُوسيقار", de:"großer Musiker / Komponist"},
+      {ar:"ألّفَ", de:"komponieren / verfassen"},
+      {ar:"يَستمِع إلى", de:"(zu-)hören"},
+      {ar:"الرَّصيف", de:"der Gehweg / Bürgersteig"},
+      {ar:"بُحَيْرة", de:"der See"},
+      {ar:"غَريق", de:"überflutet / ertrunken"},
+      {ar:"العَتيق", de:"alt (für Gebäude/Dinge; = قديم)"},
+      {ar:"الدَّمْع", de:"die Träne(n)"},
+      {ar:"حَزين", de:"traurig"},
+      {ar:"حَرْف (ج: حُروف)", de:"Buchstabe (Pl.: Buchstaben)"},
+      {ar:"غَريب", de:"fremd / die Fremde"},
+      {ar:"غُرْبة", de:"die Ferne / Trennung"},
+      {ar:"سنة (ج: سِنين / سنوات)", de:"Jahr (Pl.: Jahre)"},
+    ],
+  },
   // --- Hier nächste Woche die neue Übung einfügen ---
 ];
 function sprachExById(id){ return SPRACH_EXERCISES.find(e=>e.id===id); }
@@ -1815,12 +1886,38 @@ function openExercise(id){
   document.getElementById("exTitle").innerHTML = `<span class="ar" lang="ar" dir="rtl">${ex.title}</span>`;
   document.getElementById("exSubtitle").textContent = ex.titleDe || "";
   document.getElementById("exSubtitle").hidden = !ex.titleDe || ex.type==="timeline";
+  const intro = document.getElementById("exIntro");
+  if(ex.intro){ intro.innerHTML = ex.intro; intro.hidden = false; } else { intro.hidden = true; }
+  const photoEl = document.getElementById("exPhoto");
+  let photoSrc = ex.photo;
+  if(!photoSrc && ex.photoArtist){
+    const mus = sprachExById("musiker");
+    const strip = s => (s||"").replace(/[ً-ْٰ]/g,"");
+    const want = strip(ex.photoArtist);
+    const a = mus && mus.artists.find(x=>strip(x.name).includes(want));
+    if(a) photoSrc = a.photo;
+  }
+  if(photoSrc){
+    photoEl.hidden = false;
+    photoEl.innerHTML = `<div class="sp-photo" data-name="${ex.photoArtist||ex.title}" onclick="zoomPhoto(this)" title="Zum Vergrößern tippen"><img src="${photoSrc}" alt=""></div>`;
+  } else { photoEl.hidden = true; }
   const tableCard = document.getElementById("exTableCard");
   const profiles  = document.getElementById("exProfiles");
+  const spk = w => `<button class="sp-speak" title="Aussprache hören" onclick="speakAr(this.nextElementSibling.textContent)">🔊</button><span class="ar" lang="ar" dir="rtl">${w}</span>`;
   if(ex.type==="timeline" || ex.type==="profiles"){
     tableCard.hidden = true;
     profiles.hidden = false;
     profiles.innerHTML = renderTimeline(ex.artists);
+  } else if(ex.type==="vocab"){
+    profiles.hidden = true;
+    tableCard.hidden = false;
+    const cols = ex.cols || ["الكلمة","Deutsch"];
+    document.getElementById("exHead").innerHTML = `<tr><th>${cols[0]}</th><th>${cols[1]}</th></tr>`;
+    document.getElementById("exTable").innerHTML = ex.rows.map(v=>`
+      <tr>
+        <td class="sp-word">${spk(v.ar)}</td>
+        <td class="sp-de" dir="auto">${v.de}</td>
+      </tr>`).join("");
   } else {
     profiles.hidden = true;
     tableCard.hidden = false;
@@ -1841,7 +1938,7 @@ function openExercise(id){
 function zoomPhoto(box){
   const img = box.querySelector("img");
   if(!img || img.style.display==="none") return;
-  const name = box.closest(".artist-card")?.querySelector(".ac-name")?.textContent || "";
+  const name = box.closest(".artist-card")?.querySelector(".ac-name")?.textContent || box.getAttribute("data-name") || "";
   let ov = document.getElementById("photoLightbox");
   if(!ov){
     ov = document.createElement("div");
