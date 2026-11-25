@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>يلا عربي — Arabisch üben</title>
+<title>Yalla Arabi</title>
 </head>
 <body>
 <style>
@@ -242,6 +242,11 @@ body{
 .reviewbtn .rico{ font-size:1.5rem; }
 .reviewbtn b{ font-family:var(--font-display); }
 .reviewbtn small{ color:var(--muted); display:block; }
+.ws-subhead{
+  margin:30px 0 6px; font-family:var(--font-display); font-size:1.15rem;
+  color:var(--text); display:flex; align-items:center; gap:8px;
+  padding-top:18px; border-top:1px solid var(--border);
+}
 
 /* ---------- Startseiten-Menü & Unterseiten ---------- */
 .navgrid{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
@@ -747,6 +752,8 @@ body{
       <span class="rico">🔁</span>
       <span><b>Vokabeln wiederholen</b><small>Wörter, die du zuletzt schwierig fandest</small></span>
     </button>
+    <h3 class="ws-subhead">📝 Vokabeltests</h3>
+    <div class="grid" id="gridVoktests"></div>
   </section>
 
   <!-- ===================== SUBSEITE: SPIELE ===================== -->
@@ -977,7 +984,7 @@ const DATA = {
     {lek:13,ar:"قِصّة",de:"Geschichte, Erzählung",pl:"قِصَص"},
     {lek:13,ar:"فَراوْلة",de:"Erdbeere"},
     {lek:13,ar:"المُفَضَّل",de:"Lieblings-"},
-    {lek:13,ar:"إنْسان",de:"Mensch"},
+    {lek:13,ar:"إنْسان",de:"Mensch",pl:"ناس / أُناس"},
     {lek:13,ar:"بَعْض",de:"einige"},
     {lek:13,ar:"إجازة",de:"Urlaub, Freistellung",pl:"إجازات"},
     {lek:13,ar:"حَقيقة",de:"Wahrheit, Tatsache",pl:"حَقائِق"},
@@ -1010,6 +1017,20 @@ const DATA = {
     {lek:20,ar:"سَنة",de:"Jahr",pl:"سَنَوات"},
     {lek:20,ar:"ألّفَ / يُؤَلِّف",de:"verfassen, komponieren"},
     {lek:20,ar:"اِسْتَمَعَ / يَسْتَمِع",de:"zuhören, anhören"},
+    // ---- Vokabeltest 1 (سَمِعَ, غَريب, بُحَيْرة, إنْسان, مَشْهور schon oben vorhanden) ----
+    {lek:21,ar:"أُغْنِية",de:"Lied",pl:"أغاني"},
+    {lek:21,ar:"دَرْس",de:"Lektion, Unterricht",pl:"دُروس"},
+    {lek:21,ar:"عَنْ",de:"über, von"},
+    {lek:21,ar:"نَصّ",de:"Text",pl:"نُصوص"},
+    {lek:21,ar:"مَرْكَز",de:"Zentrum, Mittelpunkt",pl:"مَراكِز"},
+    {lek:21,ar:"صَيْف",de:"Sommer"},
+    {lek:21,ar:"شِتاء",de:"Winter"},
+    {lek:21,ar:"خَريف",de:"Herbst"},
+    {lek:21,ar:"رَبيع",de:"Frühling"},
+    {lek:21,ar:"عَيْن",de:"Auge",pl:"عُيون"},
+    {lek:21,ar:"يَوْم",de:"Tag",pl:"أيّام"},
+    {lek:21,ar:"رِسالة",de:"Brief, Nachricht",pl:"رَسائِل"},
+    {lek:21,ar:"بَرْد",de:"Kälte"},
   ],
 
   // Gebrochene Plurale
@@ -1042,6 +1063,14 @@ const DATA = {
     {sg:"رَصيف",pl:"أرصِفة",de:"Gehweg, Bürgersteig"},
     {sg:"دَمْعة",pl:"دُموع",de:"Träne"},
     {sg:"أخ",pl:"إخْوة",de:"Bruder"},
+    // ---- Vokabeltest 1 (gebrochene Plurale; أغاني schon oben) ----
+    {sg:"دَرْس",pl:"دُروس",de:"Lektion, Unterricht"},
+    {sg:"نَصّ",pl:"نُصوص",de:"Text"},
+    {sg:"مَرْكَز",pl:"مَراكِز",de:"Zentrum, Mittelpunkt"},
+    {sg:"عَيْن",pl:"عُيون",de:"Auge"},
+    {sg:"يَوْم",pl:"أيّام",de:"Tag"},
+    {sg:"رِسالة",pl:"رَسائِل",de:"Brief, Nachricht"},
+    {sg:"إنْسان",pl:"ناس / أُناس",de:"Mensch"},
   ],
 
   // Verbstämme II–X
@@ -1635,6 +1664,27 @@ const CATS = [
   {id:"neg", group:"gram", name:"Verneinung", emoji:"🚫", color:"c-violet", desc:"لا · لن · لم · ما · ليس", kind:"neg"},
   {id:"rel", group:"gram", name:"Relativpronomen", emoji:"🔀", color:"c-blue", desc:"الذي · التي · الذين · اللواتي", kind:"rel"},
   {id:"part", group:"gram", name:"Partikeln", emoji:"🧷", color:"c-gold", desc:"أنّ · إنّ · أن · لكنّ · لن", kind:"part"},
+  // --- Vokabeltests ---
+  {id:"voktest1", group:"voktest", name:"Vokabeltest 1", emoji:"📝", color:"c-gold", desc:"18 Wörter — Jahreszeiten, Wetter & mehr", kind:"vocab", items:[
+    {ar:"سَمِعَ / يَسمَع", de:"hören"},
+    {ar:"أُغْنِية", de:"Lied", pl:"أغاني"},
+    {ar:"دَرْس", de:"Lektion, Unterricht", pl:"دُروس"},
+    {ar:"عَنْ", de:"über, von"},
+    {ar:"نَصّ", de:"Text", pl:"نُصوص"},
+    {ar:"مَرْكَز", de:"Zentrum, Mittelpunkt", pl:"مَراكِز"},
+    {ar:"صَيْف", de:"Sommer"},
+    {ar:"شِتاء", de:"Winter"},
+    {ar:"خَريف", de:"Herbst"},
+    {ar:"رَبيع", de:"Frühling"},
+    {ar:"عَيْن", de:"Auge", pl:"عُيون"},
+    {ar:"غَريب / غَريبة", de:"fremd, seltsam"},
+    {ar:"يَوْم", de:"Tag", pl:"أيّام"},
+    {ar:"رِسالة", de:"Brief, Nachricht", pl:"رَسائِل"},
+    {ar:"بَرْد", de:"Kälte"},
+    {ar:"بُحَيْرة", de:"See", pl:"بُحَيْرات"},
+    {ar:"إنْسان", de:"Mensch (Pl.: الناس die Leute)", pl:"الناس / أُناس"},
+    {ar:"مَشْهور", de:"berühmt"},
+  ]},
 ];
 
 /* ============================================================
@@ -1858,10 +1908,11 @@ function renderGrids(){
   const gv = document.getElementById("gridVocab"); if(!gv) return;
   const gg = document.getElementById("gridGram");
   const gGame = document.getElementById("gridGames");
-  gv.innerHTML=""; gg.innerHTML=""; gGame.innerHTML="";
+  const gVt = document.getElementById("gridVoktests");
+  gv.innerHTML=""; gg.innerHTML=""; gGame.innerHTML=""; if(gVt) gVt.innerHTML="";
   CATS.forEach(cat=>{
-    const grid = cat.group==="gram"? gg : cat.group==="game"? gGame : gv;
-    grid.appendChild(renderCatCard(cat));
+    const grid = cat.group==="gram"? gg : cat.group==="game"? gGame : cat.group==="voktest"? gVt : gv;
+    if(grid) grid.appendChild(renderCatCard(cat));
   });
 }
 
@@ -2019,6 +2070,7 @@ function renderCatCard(cat){
 }
 
 function catItems(cat){
+  if(cat.items) return cat.items;
   if(cat.kind==="vocab") return NONVERB;
   if(cat.kind==="verbs") return VERBS;
   if(cat.kind==="stems") return DATA.stems;
